@@ -18,14 +18,6 @@ model User {
   receivedConversations Conversation[] @relation("Receiver")
 }
 
-model Session {
-  id           Int      @id @default(autoincrement())
-  userId       Int
-  accessToken  String
-  refreshToken String
-  expiresAt    DateTime
-}
-
 model Conversation {
   id         Int       @id @default(autoincrement())
   sender     User      @relation("Sender", fields: [senderId], references: [id])
