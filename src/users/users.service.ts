@@ -40,4 +40,17 @@ export class UsersService {
 
     return user;
   }
+
+  async search(username: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        username: {
+          contains: username,
+        },
+      },
+    });
+
+    if (!users.length) throw new NotFoundException('No users were founded');
+    return users;
+  }
 }
