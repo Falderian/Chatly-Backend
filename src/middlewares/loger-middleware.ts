@@ -5,7 +5,7 @@ import { Request, NextFunction } from 'express';
 export class RequestLoggingMiddleware implements NestMiddleware {
   private logger = new Logger('HTTP');
 
-  use(req: Request, _: Response, next: NextFunction): void {
+  use(req: Request, res: Response, next: NextFunction): void {
     const { method, originalUrl, ip } = req;
 
     const clientIp = req.headers['x-forwarded-for'] || ip;
