@@ -1,0 +1,36 @@
+version: '3'
+services:
+  postgres-chatly:
+    image: postgres:13
+    container_name: postgres-chatly
+    environment:
+      POSTGRES_USER: chatly_user
+      POSTGRES_PASSWORD: chatly_password
+      POSTGRES_DB: chatly_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-chatly-data:/var/lib/postgresql/data
+    networks:
+      - database-network
+
+  postgres-test:
+    image: postgres:13
+    container_name: postgres-test
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    networks:
+      - database-network
+
+volumes:
+  postgres-chatly-data:
+  postgres-test-data:
+
+networks:
+  database-network:
