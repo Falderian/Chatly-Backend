@@ -26,7 +26,7 @@ export class ConversationsController {
 
   @Get('user/:id')
   async findUserConversations(@Param('id') id: number) {
-    return await this.conversationsService.findUserConversations(id);
+    return await this.conversationsService.findUserConversations(+id);
   }
 
   @Delete(':id')

@@ -13,9 +13,7 @@ export class FactoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly msgService: MessagesService,
-  ) {
-    this.createMessages();
-  }
+  ) {}
 
   createUsers() {
     const data = Array(this.limit)

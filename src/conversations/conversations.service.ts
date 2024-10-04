@@ -51,9 +51,9 @@ export class ConversationsService {
   async findUserConversations(id: number) {
     const conversations = await this.prisma.conversation.findMany({
       where: {
-        senderId: id,
-        receiverId: id,
+        OR: [{ senderId: id }, { receiverId: id }],
       },
+      select: { messages: true, id: true },
     });
 
     if (!conversations.length)

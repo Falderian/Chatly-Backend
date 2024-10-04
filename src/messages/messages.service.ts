@@ -47,4 +47,11 @@ export class MessagesService {
 
     return message;
   }
+
+  async update(id, content: string) {
+    return await this.prisma.message.update({
+      where: { id },
+      data: { content },
+    });
+  }
 }
