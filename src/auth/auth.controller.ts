@@ -19,7 +19,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  async create(@Body() dto: CreateUserDto) {
-    return await this.usersService.create(dto);
+  async create(@Body() { username, email, password }: CreateUserDto) {
+    return await this.usersService.create({ username, email, password });
   }
 }

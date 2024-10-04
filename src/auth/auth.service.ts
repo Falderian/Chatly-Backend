@@ -12,11 +12,13 @@ export class AuthService {
 
   async login({ username, password }: Omit<CreateUserDto, 'email'>) {
     const user = await this.usersService.findOne(username);
-    if (user?.password !== password) {
-      throw new UnauthorizedException();
-    }
+    if (user?.password !== password) throw new UnauthorizedException();
+
     const payload = { sub: user.id, username: user.username };
     return {
+      username,
+      id: user.id,
+      email: user.email,
       access_token: await this.jwtService.signAsync(payload),
     };
   }
