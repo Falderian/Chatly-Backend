@@ -41,6 +41,18 @@ export class UsersService {
     return user;
   }
 
+  async findOneById(id: number) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
+  }
+
   async search(username: string) {
     const users = await this.prisma.user.findMany({
       where: {
