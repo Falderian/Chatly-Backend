@@ -56,9 +56,6 @@ export class ConversationsService {
       select: { messages: true, id: true },
     });
 
-    if (!conversations.length)
-      throw new NotFoundException('No conversations were found');
-
     return conversations;
   }
 

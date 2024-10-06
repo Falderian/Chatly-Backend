@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { username, email, password, text } from 'casual';
 import * as casual from 'casual';
@@ -9,13 +9,15 @@ import { MessagesService } from '../messages/messages.service';
 export class FactoriesService {
   skipDuplicates = true;
   limit = 100000;
+  batchSize = 5000;
+  Loger = new Logger('FactoriesService');
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly msgService: MessagesService,
   ) {}
 
-  createUsers() {
+  async createUsers() {
     const data = Array(this.limit)
       .fill(0)
       .map(() => ({
@@ -24,25 +26,31 @@ export class FactoriesService {
         password,
       }));
 
-    this.prisma.user
-      .createMany({
-        data,
+    const batches = [];
+
+    for (let i = 0; i < data.length; i += this.batchSize) {
+      batches.push(data.slice(i, i + this.batchSize));
+    }
+
+    for (const batch of batches) {
+      await this.prisma.user.createMany({
+        data: batch,
         skipDuplicates: this.skipDuplicates,
-      })
-      .then(async () =>
-        console.log('Users Count =', await this.prisma.user.count()),
-      );
+      });
+    }
+
+    Logger.log('Users Count =', await this.prisma.user.count());
   }
 
   async createMessages() {
     const users = await this.prisma.user.findMany({});
-
-    for (let i = 1; i < this.limit; i++) {
+    const messagePromises = [];
+    for (let i = 1; i <= this.limit; i++) {
       const senderId = casual.random_element(users).id;
       const receiverId = casual.random_element(users).id;
 
       if (senderId === receiverId) {
-        console.log(
+        Logger.debug(
           'Skipping message creation because sender and receiver are the same',
         );
         continue;
@@ -50,13 +58,21 @@ export class FactoriesService {
 
       const content = text;
 
-      await this.msgService.create({
-        senderId,
-        receiverId,
-        content,
-      });
+      messagePromises.push(
+        this.msgService.create({
+          senderId,
+          receiverId,
+          content,
+        }),
+      );
 
-      if (i % 200 === 0) console.log(`Messages created: ${i}`);
+      if (i % this.batchSize === 0 || i === this.limit) {
+        await Promise.all(messagePromises);
+
+        messagePromises.length = 0;
+
+        Logger.debug(`Messages created: ${i}`);
+      }
     }
   }
 }

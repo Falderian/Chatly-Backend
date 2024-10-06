@@ -11,7 +11,12 @@ export class UsersController {
     return await this.usersService.search(queryDto.query);
   }
 
-  @Get(':username')
+  @Get(':id')
+  async findUserById(@Param('id') id: string) {
+    return await this.usersService.findOneById(+id);
+  }
+
+  @Get('name/:username')
   async findOne(@Param('username') username: string) {
     return this.usersService.findOne(username);
   }

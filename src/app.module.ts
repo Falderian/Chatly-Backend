@@ -6,9 +6,18 @@ import { AuthModule } from './auth/auth.module';
 import { FactoriesModule } from './factories/factories.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { MessagesModule } from './messages/messages.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [UsersModule, PrismaModule, AuthModule, FactoriesModule, ConversationsModule, MessagesModule],
+  imports: [
+    ConfigModule.forRoot(),
+    PrismaModule,
+    AuthModule,
+    ConversationsModule,
+    MessagesModule,
+    UsersModule,
+    FactoriesModule,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
