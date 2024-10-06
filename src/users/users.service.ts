@@ -60,9 +60,10 @@ export class UsersService {
           contains: username,
         },
       },
+      select: { id: true, username: true },
+      take: 50,
     });
 
-    if (!users.length) throw new NotFoundException('No users were founded');
     return users;
   }
 }
