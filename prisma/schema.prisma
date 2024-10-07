@@ -13,6 +13,7 @@ model User {
   email                 String         @unique
   password              String
   createdAt             DateTime       @default(now())
+  lastActivity          DateTime       @default(now())
   messages              Message[]
   sentConversations     Conversation[] @relation("Sender")
   receivedConversations Conversation[] @relation("Receiver")

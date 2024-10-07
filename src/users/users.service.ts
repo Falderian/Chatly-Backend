@@ -60,7 +60,7 @@ export class UsersService {
           contains: username,
         },
       },
-      select: { id: true, username: true },
+      select: { id: true, username: true, lastActivity: true },
       take: 50,
     });
 
