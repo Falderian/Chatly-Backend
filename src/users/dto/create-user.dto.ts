@@ -1,17 +1,14 @@
 import { User } from '@prisma/client';
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsStrongPassword,
-  MinLength,
-} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
 
-export class CreateUserDto
-  implements Pick<User, 'username' | 'email' | 'password'>
-{
-  @IsNotEmpty()
+export class CreateUserDto implements Pick<User, 'email' | 'password'> {
+  @IsOptional()
   @MinLength(3)
-  username: string;
+  firstName?: string;
+
+  @IsOptional()
+  @MinLength(3)
+  lastName?: string;
 
   @IsNotEmpty()
   @IsEmail()
@@ -19,6 +16,5 @@ export class CreateUserDto
 
   @IsNotEmpty()
   @MinLength(8)
-  @IsStrongPassword()
   password: string;
 }

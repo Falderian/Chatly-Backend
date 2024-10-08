@@ -15,25 +15,23 @@ export class UsersService {
       throw new ConflictException('User already exists');
     }
 
-    return this.prisma.user.create({
-      data,
-    });
+    return this.prisma.user.create({ data });
   }
 
-  async isExists({ email, username }: CreateUserDto) {
+  async isExists({ email }: CreateUserDto) {
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        OR: [{ email }, { username }],
+        OR: [{ email }],
       },
     });
 
     return Boolean(existingUser);
   }
 
-  async findOne(username: string) {
+  async findOne(email: string) {
     const user = await this.prisma.user.findFirst({
       where: {
-        username,
+        email,
       },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -53,14 +51,28 @@ export class UsersService {
     return user;
   }
 
-  async search(username: string) {
+  async search(query: string) {
     const users = await this.prisma.user.findMany({
       where: {
-        username: {
-          contains: username,
-        },
+        OR: [
+          {
+            firstName: {
+              contains: query,
+            },
+          },
+          {
+            lastName: {
+              contains: query,
+            },
+          },
+        ],
       },
-      select: { id: true, username: true, lastActivity: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        lastActivity: true,
+      },
       take: 50,
     });
 

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { username, email, password, text } from 'casual';
+import { first_name, last_name, email, password, text } from 'casual';
 import * as casual from 'casual';
 
 import { MessagesService } from '../messages/messages.service';
@@ -15,16 +15,14 @@ export class FactoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly msgService: MessagesService,
-  ) {
-    this.createUsers();
-    this.createMessages();
-  }
+  ) {}
 
   async createUsers() {
     const data = Array(this.limit)
       .fill(0)
       .map(() => ({
-        username,
+        firstName: first_name,
+        lastName: last_name,
         email,
         password,
       }));

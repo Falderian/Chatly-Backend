@@ -13,13 +13,13 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  async login(@Body() dto: Omit<CreateUserDto, 'email'>) {
+  async login(@Body() dto: CreateUserDto) {
     return await this.authService.login(dto);
   }
 
   @Public()
   @Post('register')
-  async create(@Body() { username, email, password }: CreateUserDto) {
-    return await this.usersService.create({ username, email, password });
+  async create(@Body() { email, password }: CreateUserDto) {
+    return await this.usersService.create({ email, password });
   }
 }
