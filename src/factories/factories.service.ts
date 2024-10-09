@@ -14,15 +14,13 @@ function getRandomElements<T>(array: T[], count: number): T[] {
 export class FactoriesService {
   skipDuplicates = true;
   limit = 100000;
-  batchSize = 5000;
+  batchSize = 1000;
   logger = new Logger('FactoriesService');
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly msgService: MessagesService,
-  ) {
-    this.runFactory();
-  }
+  ) {}
 
   runFactory = async () => {
     this.logger.log('Starting Factory...');
@@ -36,6 +34,15 @@ export class FactoriesService {
     this.logger.log('Starting user creation process...');
 
     const initialCount = await this.prisma.user.count();
+
+    await this.prisma.user.create({
+      data: {
+        firstName: 'Lilyan',
+        lastName: 'Quigley',
+        email: 'Xavier_Tromp@yahoo.com',
+        password: '5Gloria95',
+      },
+    });
 
     const data = Array(this.limit)
       .fill(0)
@@ -78,7 +85,7 @@ export class FactoriesService {
     let messagesCreated = 0;
     const totalBatches = Math.ceil(this.limit / this.batchSize); // Total number of batches
 
-    for (let i = 1; i <= this.limit; i++) {
+    for (let i = 1; i <= this.limit; i + 5) {
       const senderId = casual.random_element(users).id;
       const receiverId = casual.random_element(users).id;
 
