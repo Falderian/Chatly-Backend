@@ -11,8 +11,11 @@ export class ConversationsService {
 
   async create(...ids: number[]) {
     const isUsersExists = Boolean(
-      (await Promise.all(ids.map((id) => this.usersService.findOneById(id))))
-        .length,
+      (
+        await Promise.all(
+          ids.map((id) => this.usersService.findOneById(-1, id)),
+        )
+      ).length,
     );
 
     if (!isUsersExists) throw new NotFoundException(`Users not found`);

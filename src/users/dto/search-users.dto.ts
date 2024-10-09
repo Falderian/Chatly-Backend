@@ -1,7 +1,7 @@
-import { IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SearchUsersDto {
   @IsString()
-  @Length(3)
+  @IsNotEmpty()
   query: string;
 }

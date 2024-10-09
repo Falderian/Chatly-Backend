@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { SearchUsersDto } from './dto/search-users.dto';
+import { Decorators } from '../decorators/decorators';
 
 @Controller('users')
 export class UsersController {
@@ -11,13 +12,11 @@ export class UsersController {
     return await this.usersService.search(queryDto.query);
   }
 
-  @Get(':id')
-  async findUserById(@Param('id') id: string) {
-    return await this.usersService.findOneById(+id);
-  }
-
-  @Get('name/:username')
-  async Search(@Param('username') username: string) {
-    return this.usersService.search(username);
+  @Get('/:id')
+  async findUserById(
+    @Param('id') id: string,
+    @Decorators.UserId() userId: string,
+  ) {
+    return await this.usersService.findOneById(+userId, +id);
   }
 }

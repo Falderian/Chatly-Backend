@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDTO } from './dto/create-conversation.dto';
+import { Decorators } from '../decorators/decorators';
 
 @Controller('conversations')
 export class ConversationsController {
@@ -20,8 +21,8 @@ export class ConversationsController {
   }
 
   @Get()
-  async find(@Query('ids') ids: [number, number]) {
-    return await this.conversationsService.find(ids);
+  async find(@Query('id') id: string, @Decorators.UserId() senderId: string) {
+    return await this.conversationsService.find([+senderId, +id]);
   }
 
   @Get('user/:id')

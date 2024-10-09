@@ -13,8 +13,11 @@ export class MessagesService {
   async create({ senderId, receiverId, content }: CreateMessageDTO) {
     const ids: [number, number] = [senderId, receiverId];
     const isUsersExists = Boolean(
-      (await Promise.all(ids.map((id) => this.usersService.findOneById(id))))
-        .length,
+      (
+        await Promise.all(
+          ids.map((id) => this.usersService.findOneById(-1, id)),
+        )
+      ).length,
     );
 
     if (!isUsersExists) throw new NotFoundException('No users were found');
