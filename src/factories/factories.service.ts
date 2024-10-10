@@ -35,14 +35,16 @@ export class FactoriesService {
 
     const initialCount = await this.prisma.user.count();
 
-    await this.prisma.user.create({
-      data: {
-        firstName: 'Lilyan',
-        lastName: 'Quigley',
-        email: 'Xavier_Tromp@yahoo.com',
-        password: '5Gloria95',
-      },
-    });
+    this.prisma.user
+      .create({
+        data: {
+          firstName: 'Lilyan',
+          lastName: 'Quigley',
+          email: 'Xavier_Tromp@yahoo.com',
+          password: '5Gloria95',
+        },
+      })
+      .catch((e) => e);
 
     const data = Array(this.limit)
       .fill(0)
