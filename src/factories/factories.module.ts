@@ -6,7 +6,7 @@ import { FactoriesController } from './factories.controller';
 
 @Module({
   imports: [PrismaModule, MessagesModule],
-  providers: [FactoriesService],
   controllers: [FactoriesController],
+  providers: [FactoriesService],
 })
 export class FactoriesModule {}
