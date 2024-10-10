@@ -5,7 +5,7 @@ import { FactoriesService } from './factories.service';
 export class FactoriesController {
   constructor(private readonly factoriesService: FactoriesService) {}
 
-  @Get('generate ')
+  @Get('generate')
   generate() {
     this.factoriesService.runFactory();
   }
