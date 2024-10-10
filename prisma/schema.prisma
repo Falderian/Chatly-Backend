@@ -9,13 +9,32 @@ datasource db {
 
 model User {
   id                    Int            @id @default(autoincrement())
-  username              String         @unique
+  firstName             String?
+  lastName              String?
   email                 String         @unique
   password              String
   createdAt             DateTime       @default(now())
+  lastActivity          DateTime       @default(now())
   messages              Message[]
   sentConversations     Conversation[] @relation("Sender")
   receivedConversations Conversation[] @relation("Receiver")
+
+  contacts  Contact[] @relation("UserContacts")
+  contactOf Contact[] @relation("UserContactOf")
+}
+
+model Contact {
+  id Int @id @default(autoincrement())
+
+  userId Int
+  user   User @relation("UserContacts", fields: [userId], references: [id])
+
+  contactId Int
+  contact   User @relation("UserContactOf", fields: [contactId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contactId])
 }
 
 model Conversation {
