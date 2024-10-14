@@ -82,7 +82,7 @@ export class UsersService {
         lastName: true,
         lastActivity: true,
       },
-      take: 50,
+      take: 10,
     });
 
     return users;

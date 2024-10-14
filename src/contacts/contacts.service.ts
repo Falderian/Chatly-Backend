@@ -17,11 +17,24 @@ export class ContactsService {
   }
 
   async findUserContacts(userId: number) {
-    return this.prisma.contact.findMany({
+    const contacts = await this.prisma.contact.findMany({
       where: {
         userId,
       },
+      include: {
+        contact: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            lastActivity: true,
+          },
+        },
+      },
+      take: 10,
     });
+
+    return contacts.map((contact) => contact.contact);
   }
 
   async delete(userId: number, contactId: number) {
@@ -42,7 +55,6 @@ export class ContactsService {
         contactId,
       },
     });
-    console.log(userId, contactId, contact);
     return Boolean(contact?.id);
   }
 }
