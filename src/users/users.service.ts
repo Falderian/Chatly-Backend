@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ContactsService } from '../contacts/contacts.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly contactsService: ContactsService,
+  ) {}
 
   async create(data: CreateUserDto) {
     if (await this.isExists(data)) {
@@ -42,20 +46,13 @@ export class UsersService {
   async findOneById(userId: number, id: number) {
     const user = await this.prisma.user.findFirst({
       where: { id },
-      include: {
-        contactOf: {
-          where: {
-            userId,
-          },
-        },
-      },
     });
 
     if (!user) throw new NotFoundException('User not found');
 
     delete user.password;
 
-    const isContact = Boolean(user.contactOf.length);
+    const isContact = await this.contactsService.isUserContact(userId, id);
 
     return {
       ...user,

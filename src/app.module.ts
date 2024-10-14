@@ -7,6 +7,7 @@ import { FactoriesModule } from './factories/factories.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { MessagesModule } from './messages/messages.module';
 import { ConfigModule } from '@nestjs/config';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     MessagesModule,
     UsersModule,
     FactoriesModule,
+    ContactsModule,
   ],
 })
 export class AppModule implements NestModule {

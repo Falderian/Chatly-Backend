@@ -4,6 +4,7 @@ import { MessagesController } from './messages.controller';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { ConversationsService } from '../conversations/conversations.service';
+import { ContactsService } from '../contacts/contacts.service';
 
 @Module({
   controllers: [MessagesController],
@@ -12,6 +13,7 @@ import { ConversationsService } from '../conversations/conversations.service';
     PrismaService,
     UsersService,
     ConversationsService,
+    ContactsService,
   ],
   exports: [MessagesService],
 })
