@@ -43,7 +43,7 @@ export class UsersService {
     return user;
   }
 
-  async findOneById(userId: number, id: number) {
+  async findOneById(id: number) {
     const user = await this.prisma.user.findFirst({
       where: { id },
     });
@@ -51,13 +51,7 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     delete user.password;
-
-    const isContact = await this.contactsService.isUserContact(userId, id);
-
-    return {
-      ...user,
-      isContact,
-    };
+    return user;
   }
 
   async search(query: string) {

@@ -17,6 +17,6 @@ export class UsersController {
     @Param('id') id: string,
     @Decorators.UserId() userId: string,
   ) {
-    return await this.usersService.findOneById(+userId, +id);
+    return await this.usersService.findOneById(+userId);
   }
 }
