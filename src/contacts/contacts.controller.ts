@@ -11,16 +11,16 @@ export class ContactsController {
     return this.contactsService.create(createContactDto);
   }
 
-  @Get()
-  async findUserContacts(@Param('userId') userId: number) {
-    return this.contactsService.findUserContacts(userId);
+  @Get(':id')
+  async findUserContacts(@Param('id') userId: string) {
+    return this.contactsService.findUserContacts(+userId);
   }
 
   @Delete(':userId/:contactId')
   async delete(
-    @Param('userId') userId: number,
-    @Param('contactId') contactId: number,
+    @Param('userId') userId: string,
+    @Param('contactId') contactId: string,
   ) {
-    return this.contactsService.delete(userId, contactId);
+    return this.contactsService.delete(+userId, +contactId);
   }
 }
