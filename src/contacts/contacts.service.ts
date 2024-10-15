@@ -16,10 +16,10 @@ export class ContactsService {
     });
   }
 
-  async findUserContacts(userId: number) {
+  async findUserContacts(userId: string) {
     const contacts = await this.prisma.contact.findMany({
       where: {
-        userId,
+        userId: +userId,
       },
       include: {
         contact: {
@@ -55,6 +55,7 @@ export class ContactsService {
         contactId,
       },
     });
+
     return Boolean(contact?.id);
   }
 }
