@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -8,12 +12,14 @@ export class ContactsService {
 
   async create(data: CreateContactDto) {
     const isExists = await this.isUserContact(data.userId, data.contactId);
-    console.log(data, isExists);
+
     if (isExists) throw new ConflictException('Contact already exists');
 
-    return this.prisma.contact.create({
+    const res = await this.prisma.contact.create({
       data,
     });
+
+    return { ...res, isContact: true };
   }
 
   async findUserContacts(userId: string) {
@@ -38,14 +44,19 @@ export class ContactsService {
   }
 
   async delete(userId: number, contactId: number) {
-    return this.prisma.contact.delete({
-      where: {
-        userId_contactId: {
-          userId: userId,
-          contactId: contactId,
+    try {
+      await this.prisma.contact.delete({
+        where: {
+          userId_contactId: {
+            userId: userId,
+            contactId: contactId,
+          },
         },
-      },
-    });
+      });
+      return { isContact: false };
+    } catch (error) {
+      throw new BadRequestException(error.messsage);
+    }
   }
 
   async isUserContact(userId: number, contactId: number) {
