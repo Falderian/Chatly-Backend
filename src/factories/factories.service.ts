@@ -101,8 +101,7 @@ export class FactoriesService {
       const content = text;
       messagePromises.push(
         this.msgService.create({
-          senderId,
-          receiverId,
+          conversationId: casual.integer(0, 300),
           content,
         }),
       );

@@ -17,6 +17,6 @@ export class MessagesController {
     @Param(':id') id: string,
     @Body() { content }: UpdateMessageDTO,
   ) {
-    return this.messagesService.update(id, content);
+    return this.messagesService.update(+id, content);
   }
 }
