@@ -22,7 +22,12 @@ export class ConversationsController {
 
   @Get()
   async find(@Query('id') id: string, @Decorators.UserId() senderId: string) {
-    return await this.conversationsService.find([+senderId, +id]);
+    return await this.conversationsService.find(+senderId, +id);
+  }
+
+  @Get(':id')
+  async findByid(@Param('id') id: string) {
+    return await this.conversationsService.findById(+id);
   }
 
   @Get('user/:id')

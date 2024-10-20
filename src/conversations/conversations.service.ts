@@ -9,29 +9,57 @@ export class ConversationsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(...ids: number[]) {
+  async create(senderId: number, receiverId: number) {
     const isUsersExists = Boolean(
-      (await Promise.all(ids.map((id) => this.usersService.findOneById(id))))
-        .length,
+      (
+        await Promise.all(
+          [senderId, receiverId].map((id) => this.usersService.findOneById(id)),
+        )
+      ).length,
     );
 
     if (!isUsersExists) throw new NotFoundException(`Users not found`);
 
+    const existingConversation = await this.prisma.conversation.findFirst({
+      where: {
+        OR: [
+          {
+            senderId,
+            receiverId,
+          },
+          {
+            senderId: receiverId,
+            receiverId: senderId,
+          },
+        ],
+      },
+      include: {
+        messages: {
+          take: 10,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    if (existingConversation) return existingConversation;
+
     return await this.prisma.conversation.create({
       data: {
-        senderId: ids[0],
-        receiverId: ids[1],
+        senderId,
+        receiverId,
       },
     });
   }
 
-  async find([senderId, receiverId]: [number, number]) {
+  async find(senderId: number, receiverId: number) {
     const conversations = await this.prisma.conversation.findMany({
       where: {
         OR: [
           {
-            senderId: senderId,
-            receiverId: receiverId,
+            senderId,
+            receiverId,
           },
           {
             senderId: receiverId,
@@ -46,6 +74,17 @@ export class ConversationsService {
     }
 
     return conversations;
+  }
+
+  async findById(id: number) {
+    return await this.prisma.conversation.findFirstOrThrow({
+      where: {
+        id,
+      },
+      include: {
+        messages: true,
+      },
+    });
   }
 
   async findUserConversations(id: number) {

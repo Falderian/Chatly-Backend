@@ -1,4 +1,3 @@
-import { Message } from '@prisma/client';
 import {
   IsNotEmpty,
   IsNumber,
@@ -7,16 +6,11 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class CreateMessageDTO implements Pick<Message, 'senderId' | 'content'> {
+export class CreateMessageDTO {
   @IsNotEmpty()
   @Min(1)
   @IsNumber()
-  receiverId: number;
-
-  @IsNotEmpty()
-  @Min(1)
-  @IsNumber()
-  senderId: number;
+  conversationId: number;
 
   @IsNotEmpty()
   @IsString()
