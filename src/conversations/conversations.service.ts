@@ -82,7 +82,11 @@ export class ConversationsService {
         id,
       },
       include: {
-        messages: true,
+        messages: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
     });
   }
@@ -92,7 +96,23 @@ export class ConversationsService {
       where: {
         OR: [{ senderId: id }, { receiverId: id }],
       },
-      select: { messages: true, id: true },
+      select: {
+        messages: {
+          include: {
+            sender: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+          take: 1,
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        id: true,
+      },
     });
 
     return conversations;
