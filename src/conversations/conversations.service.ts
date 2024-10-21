@@ -97,25 +97,46 @@ export class ConversationsService {
         OR: [{ senderId: id }, { receiverId: id }],
       },
       select: {
+        id: true,
         messages: {
-          include: {
-            sender: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
           take: 1,
           orderBy: {
             createdAt: 'desc',
           },
         },
-        id: true,
+        sender: true,
+        receiver: true,
       },
     });
 
-    return conversations;
+    const conversationsWithMessages = conversations.filter(
+      (conversation) => conversation.messages.length > 0,
+    );
+
+    return conversationsWithMessages.map((conversation) => {
+      const participant =
+        conversation.sender.id === id
+          ? conversation.receiver
+          : conversation.sender;
+
+      const isOwnLastMessage = conversation.messages[0]?.senderId === id;
+      const msg = conversation.messages[0];
+
+      return {
+        id: conversation.id,
+        lastMessage: {
+          content: msg.content,
+          createdAt: msg.createdAt,
+          isRead: msg.isRead,
+        },
+        isOwnLastMessage,
+        participant: {
+          id: participant.id,
+          firstName: participant.firstName,
+          lastName: participant.lastName,
+        },
+      };
+    });
   }
 
   async delete(id: number) {
