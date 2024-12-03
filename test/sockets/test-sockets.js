@@ -30,7 +30,7 @@ const connectUser = async (email, password) => {
 
   socket.on('message', console.log);
 
-  return socket;
+  return { socket, token };
 };
 
 const [firstSocket, secondSocket] = await Promise.all([
@@ -38,6 +38,14 @@ const [firstSocket, secondSocket] = await Promise.all([
   connectUser('Shanahan.Branson@yahoo.com', '2Jayce87'),
 ]);
 
-firstSocket.emit('notificate', { message: 'Hello there', userId: 2 });
+firstSocket.socket.emit('notificate', { message: 'Hello there', userId: 2 });
 
-firstSocket.emit('notificate', { message: 'Hello there', userId: 2 });
+const response = await fetch('http://localhost:3000/conversations/user/1', {
+  method: 'GET',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${firstSocket.token}`,
+  },
+});
+
+console.log(await response.json());

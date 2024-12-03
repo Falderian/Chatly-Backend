@@ -3,9 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ContactsService } from '../contacts/contacts.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ContactsService } from '../contacts/contacts.service';
 
 @Injectable()
 export class UsersService {
@@ -65,6 +65,11 @@ export class UsersService {
           },
           {
             lastName: {
+              contains: query,
+            },
+          },
+          {
+            email: {
               contains: query,
             },
           },

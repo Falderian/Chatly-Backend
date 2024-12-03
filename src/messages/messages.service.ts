@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { ConversationsService } from '../conversations/conversations.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDTO } from './dto/create-message.dto';
-import { ConversationsService } from '../conversations/conversations.service';
 
 @Injectable()
 export class MessagesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly conversationsService: ConversationsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create({ conversationId, content }: CreateMessageDTO) {
@@ -20,6 +22,18 @@ export class MessagesService {
         senderId: conversation.senderId,
         content,
       },
+    });
+
+    console.log({
+      message: content,
+      senderId: conversation.senderId,
+      receiverId: conversation.receiverId,
+    });
+
+    this.notificationsService.notificateUser({
+      message: content,
+      senderId: conversation.senderId,
+      receiverId: conversation.receiverId,
     });
 
     return message;

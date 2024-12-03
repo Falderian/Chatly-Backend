@@ -6,7 +6,6 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { FactoriesModule } from './factories/factories.module';
 import { MessagesModule } from './messages/messages.module';
 import { RequestLoggingMiddleware } from './middlewares/loger-middleware';
-import { NotificationsModule } from './notifications/notifications.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
@@ -20,7 +19,6 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     FactoriesModule,
     ContactsModule,
-    NotificationsModule,
   ],
 })
 export class AppModule implements NestModule {

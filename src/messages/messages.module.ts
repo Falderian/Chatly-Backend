@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
-import { MessagesService } from './messages.service';
-import { MessagesController } from './messages.controller';
+import { ContactsService } from '../contacts/contacts.service';
+import { ConversationsService } from '../conversations/conversations.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
-import { ConversationsService } from '../conversations/conversations.service';
-import { ContactsService } from '../contacts/contacts.service';
+import { MessagesController } from './messages.controller';
+import { MessagesService } from './messages.service';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [MessagesController],
   providers: [
     MessagesService,
