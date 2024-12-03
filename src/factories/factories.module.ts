@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { FactoriesService } from './factories.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { ConversationsModule } from '../conversations/conversations.module';
 import { MessagesModule } from '../messages/messages.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { FactoriesController } from './factories.controller';
+import { FactoriesService } from './factories.service';
 
 @Module({
-  imports: [PrismaModule, MessagesModule],
+  imports: [PrismaModule, MessagesModule, ConversationsModule],
   controllers: [FactoriesController],
   providers: [FactoriesService],
 })

@@ -3,6 +3,7 @@ import * as casual from 'casual';
 import { email, first_name, last_name, password, text } from 'casual';
 import { PrismaService } from '../prisma/prisma.service';
 
+import { ConversationsService } from '../conversations/conversations.service';
 import { MessagesService } from '../messages/messages.service';
 
 function getRandomElements<T>(array: T[], count: number): T[] {
@@ -20,6 +21,7 @@ export class FactoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly msgService: MessagesService,
+    private readonly conversationsService: ConversationsService,
   ) {}
 
   runFactory = async () => {
@@ -101,12 +103,16 @@ export class FactoriesService {
         receiverId = casual.random_element(users).id;
       } while (senderId === receiverId);
 
+      this.conversationsService.create(senderId, receiverId);
+
       messageTasks.push({
         senderId,
         receiverId,
         content: text || 'Default message content',
       });
     }
+
+    const conversations = await this.prisma.conversation.findMany({});
 
     let messagesCreated = 0;
 
@@ -120,10 +126,15 @@ export class FactoriesService {
       );
 
       try {
+        const conversationId = casual.random_element(conversations).id;
+
         await Promise.all(
-          currentBatch.map(({ senderId, receiverId, content }) =>
+          currentBatch.map(({ content }) =>
             this.msgService
-              .create({ senderId, receiverId, content })
+              .create({
+                conversationId,
+                content,
+              })
               .catch((error) => {
                 this.logger.error(`Failed to create message: ${error.message}`);
               }),
@@ -146,7 +157,7 @@ export class FactoriesService {
   async createContacts() {
     this.logger.log('Starting contact creation process...');
 
-    const totalUsers = await this.prisma.user.count();
+    const totalUsers = (await this.prisma.user.count()) / 1000;
     const batchSize = this.batchSize;
 
     let contactsCreated = 0;

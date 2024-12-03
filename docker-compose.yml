@@ -1,12 +1,11 @@
-version: '3'
 services:
   postgres-chatly:
     image: postgres:13
     container_name: postgres-chatly
     environment:
-      POSTGRES_USER: chatly_user
-      POSTGRES_PASSWORD: chatly_password
-      POSTGRES_DB: chatly_db
+      POSTGRES_USER: chatly
+      POSTGRES_PASSWORD: chatly
+      POSTGRES_DB: chatly
     ports:
       - '5432:5432'
     volumes:

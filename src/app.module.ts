@@ -1,13 +1,14 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { UsersModule } from './users/users.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { RequestLoggingMiddleware } from './middlewares/loger-middleware';
-import { AuthModule } from './auth/auth.module';
-import { FactoriesModule } from './factories/factories.module';
-import { ConversationsModule } from './conversations/conversations.module';
-import { MessagesModule } from './messages/messages.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { FactoriesModule } from './factories/factories.module';
+import { MessagesModule } from './messages/messages.module';
+import { RequestLoggingMiddleware } from './middlewares/loger-middleware';
+import { NotificationsModule } from './notifications/notifications.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ContactsModule } from './contacts/contacts.module';
     UsersModule,
     FactoriesModule,
     ContactsModule,
+    NotificationsModule,
   ],
 })
 export class AppModule implements NestModule {
