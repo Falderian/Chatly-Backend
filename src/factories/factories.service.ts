@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { first_name, last_name, email, password, text } from 'casual';
 import * as casual from 'casual';
+import { email, first_name, last_name, password, text } from 'casual';
+import { PrismaService } from '../prisma/prisma.service';
 
 import { MessagesService } from '../messages/messages.service';
 
@@ -13,8 +13,8 @@ function getRandomElements<T>(array: T[], count: number): T[] {
 @Injectable()
 export class FactoriesService {
   skipDuplicates = true;
-  limit = 100000;
-  batchSize = 1000;
+  limit = 1000;
+  batchSize = 100;
   logger = new Logger('FactoriesService');
 
   constructor(
@@ -47,7 +47,7 @@ export class FactoriesService {
       .catch((e) => e);
 
     const data = Array(this.limit)
-      .fill(0)
+      .fill(null)
       .map(() => ({
         firstName: first_name,
         lastName: last_name,
@@ -79,48 +79,67 @@ export class FactoriesService {
   }
 
   async createMessages() {
-    this.logger.log('Starting message creation process...');
+    this.logger.log('Starting optimized message creation process...');
 
     const users = await this.prisma.user.findMany({});
-    const messagePromises = [];
+    if (!users.length) {
+      this.logger.error('No users found. Cannot create messages.');
+      return;
+    }
+    this.logger.log(`Fetched ${users.length} users.`);
+
+    const totalMessages = this.limit * 10;
+    const batchSize = this.batchSize || 100;
+    const totalBatches = Math.ceil(totalMessages / batchSize);
+
+    const messageTasks = [];
+    for (let i = 0; i < totalMessages; i++) {
+      let senderId: number, receiverId: number;
+
+      do {
+        senderId = casual.random_element(users).id;
+        receiverId = casual.random_element(users).id;
+      } while (senderId === receiverId);
+
+      messageTasks.push({
+        senderId,
+        receiverId,
+        content: text || 'Default message content',
+      });
+    }
 
     let messagesCreated = 0;
-    const totalBatches = Math.ceil(this.limit / this.batchSize); // Total number of batches
 
-    for (let i = 1; i <= this.limit; i + 5) {
-      const senderId = casual.random_element(users).id;
-      const receiverId = casual.random_element(users).id;
+    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+      const batchStart = batchIndex * batchSize;
+      const batchEnd = Math.min(batchStart + batchSize, messageTasks.length);
 
-      if (senderId === receiverId) {
-        this.logger.debug(
-          'Skipping message creation because sender and receiver are the same',
-        );
-        continue;
-      }
-
-      const content = text;
-      messagePromises.push(
-        this.msgService.create({
-          senderId,
-          receiverId,
-          content,
-        }),
+      const currentBatch = messageTasks.slice(batchStart, batchEnd);
+      this.logger.log(
+        `Processing batch ${batchIndex + 1}/${totalBatches} (${currentBatch.length} messages)...`,
       );
 
-      if (i % this.batchSize === 0 || i === this.limit) {
-        await Promise.all(messagePromises);
-        messagesCreated += messagePromises.length;
-
-        const currentBatch = Math.ceil(i / this.batchSize);
-        this.logger.log(
-          `Messages Batch ${currentBatch}/${totalBatches}: ${messagesCreated} messages created so far.`,
+      try {
+        await Promise.all(
+          currentBatch.map(({ senderId, receiverId, content }) =>
+            this.msgService
+              .create({ senderId, receiverId, content })
+              .catch((error) => {
+                this.logger.error(`Failed to create message: ${error.message}`);
+              }),
+          ),
         );
-        messagePromises.length = 0;
+        messagesCreated += currentBatch.length;
+        this.logger.log(
+          `Batch ${batchIndex + 1} completed. Total messages created so far: ${messagesCreated}`,
+        );
+      } catch (error) {
+        this.logger.error(`Error in batch ${batchIndex + 1}: ${error.message}`);
       }
     }
 
     this.logger.log(
-      `Message creation process completed. Total Messages Created: ${messagesCreated}.`,
+      `Message creation process completed. Total Messages Created: ${messagesCreated}/${totalMessages}.`,
     );
   }
 
