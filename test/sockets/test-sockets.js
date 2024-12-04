@@ -15,9 +15,8 @@ const connectUser = async (email, password) => {
 
   const { access_token: token } = await response.json();
 
-  const socket = io('http://localhost:1235', {
+  const socket = io('wss://c38a-178-120-215-67.ngrok-free.app', {
     auth: { token },
-    reconnectionAttempts: 10,
   });
 
   socket.on('connect', () => {
@@ -33,19 +32,26 @@ const connectUser = async (email, password) => {
   return { socket, token };
 };
 
-const [firstSocket, secondSocket] = await Promise.all([
-  connectUser('Xavier_Tromp@yahoo.com', '5Gloria95'),
-  connectUser('Shanahan.Branson@yahoo.com', '2Jayce87'),
-]);
-
-firstSocket.socket.emit('notificate', { message: 'Hello there', userId: 2 });
+const { token } = await connectUser('Fred_Kemmer@Napoleon.name', '0River22');
 
 const response = await fetch('http://localhost:3000/conversations/user/1', {
   method: 'GET',
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${firstSocket.token}`,
+    Authorization: `Bearer ${token}`,
   },
 });
 
-console.log(await response.json());
+const conversations = await response.json();
+const conversationId = conversations[0].id;
+
+const newMessage = await fetch('http://localhost:3000/messages/', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ conversationId, content: new Date().toString() }),
+});
+
+console.log(await newMessage.json());

@@ -7,9 +7,9 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Decorators } from '../decorators/decorators';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDTO } from './dto/create-conversation.dto';
-import { Decorators } from '../decorators/decorators';
 
 @Controller('conversations')
 export class ConversationsController {
@@ -26,8 +26,8 @@ export class ConversationsController {
   }
 
   @Get(':id')
-  async findByid(@Param('id') id: string) {
-    return await this.conversationsService.findById(+id);
+  async findByid(@Param('id') id: string, @Query('page') page?: number) {
+    return await this.conversationsService.findById(+id, page);
   }
 
   @Get('user/:id')

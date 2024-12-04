@@ -76,19 +76,25 @@ export class ConversationsService {
     return conversations;
   }
 
-  async findById(id: number) {
-    return await this.prisma.conversation.findFirstOrThrow({
-      where: {
-        id,
-      },
-      include: {
-        messages: {
-          orderBy: {
-            createdAt: 'desc',
+  async findById(id: number, page = 0) {
+    return await this.prisma.conversation
+      .findFirstOrThrow({
+        where: {
+          id,
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 10,
+            skip: page * 10,
           },
         },
-      },
-    });
+      })
+      .catch((e) => {
+        throw new NotFoundException(e.message);
+      });
   }
 
   async findUserConversations(id: number) {

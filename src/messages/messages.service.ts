@@ -23,13 +23,6 @@ export class MessagesService {
         content,
       },
     });
-
-    console.log({
-      message: content,
-      senderId: conversation.senderId,
-      receiverId: conversation.receiverId,
-    });
-
     this.notificationsService.notificateUser({
       message: content,
       senderId: conversation.senderId,

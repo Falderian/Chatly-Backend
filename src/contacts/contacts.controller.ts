@@ -29,7 +29,6 @@ export class ContactsController {
     @Query('userId') userId: string,
     @Query('contactId') contactId: string,
   ) {
-    console.log('isUserContact called with:', userId, contactId);
     return await this.contactsService.isUserContact(+userId, +contactId);
   }
 

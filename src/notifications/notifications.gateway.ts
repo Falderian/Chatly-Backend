@@ -13,6 +13,8 @@ export class NotificationsGateway
   constructor(private readonly notificationsService: NotificationsService) {}
 
   async handleConnection(client: Socket) {
+    console.log('connection attempt');
+
     return await this.notificationsService.handleConnection(client);
   }
 

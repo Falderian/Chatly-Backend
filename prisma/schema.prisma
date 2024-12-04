@@ -49,7 +49,7 @@ model Conversation {
 
 model Message {
   id             Int          @id @default(autoincrement())
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   conversationId Int
   sender         User         @relation(fields: [senderId], references: [id])
   senderId       Int

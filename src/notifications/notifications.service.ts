@@ -23,7 +23,7 @@ export class NotificationsService {
 
       this.connectedUsers.set(user.sub, client);
 
-      this.logger.verbose(`User connected: ${user.sub}`);
+      this.logger.verbose(`User connected: ${1}`);
     } catch (error) {
       console.error('Connection failed:', error.message);
       client.disconnect();
@@ -40,6 +40,7 @@ export class NotificationsService {
     this.connectedUsers.delete(payload.sub);
   }
 
+  // To Do, check the client notification event
   async notificateUser({
     message,
     senderId,
@@ -49,14 +50,18 @@ export class NotificationsService {
     senderId: number;
     receiverId: number;
   }): Promise<string> {
+    // console.log('sender', senderId);
+    // console.log('reciever ', receiverId);
     const receiverSocket = this.connectedUsers.get(receiverId);
-
+    // console.log(this.connectedUsers.size);
+    // console.log(this.connectedUsers.keys());
+    // console.log(receiverSocket);
     if (!receiverSocket) {
-      this.logger.error(`No connected socket for userId: ${receiverId}`);
-      return 'Error: User not connected';
+      return `No connected socket for userId: ${receiverId}`;
     }
 
-    receiverSocket.send({ message, from: senderId });
+    // console.log('receiverSocket', receiverSocket);
+    receiverSocket.emit('notificate', { message, from: senderId });
     return message;
   }
 
