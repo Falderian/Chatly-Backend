@@ -35,6 +35,14 @@ export class ConversationsController {
     return await this.conversationsService.findUserConversations(+id);
   }
 
+  @Get('messages/:id')
+  async findConversationMessages(
+    @Param('id') id: string,
+    @Query('page') page = 0,
+  ) {
+    return await this.conversationsService.findConversationMessages(+id, page);
+  }
+
   @Delete(':id')
   async delete(@Param('id') id: number) {
     return await this.conversationsService.delete(id);
