@@ -26,9 +26,9 @@ export class FactoriesService {
 
   runFactory = async () => {
     this.logger.log('Starting Factory...');
-    // await this.createUsers();
+    await this.createUsers();
     await this.createMessages();
-    // await this.createContacts();
+    await this.createContacts();
     this.logger.log('Factory process completed.');
   };
 
