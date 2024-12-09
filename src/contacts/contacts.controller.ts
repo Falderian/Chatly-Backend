@@ -20,8 +20,11 @@ export class ContactsController {
   }
 
   @Get('user')
-  async findUserContacts(@Query('id') id: string) {
-    return this.contactsService.findUserContacts(id);
+  async findUserContacts(
+    @Query('id') id: string,
+    @Query('page') page?: number,
+  ) {
+    return this.contactsService.findUserContacts(id, page);
   }
 
   @Get('is-contact')

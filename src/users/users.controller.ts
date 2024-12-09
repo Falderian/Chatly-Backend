@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { UsersService } from './users.service';
 import { SearchUsersDto } from './dto/search-users.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -8,7 +8,7 @@ export class UsersController {
 
   @Get('search')
   async searchUsers(@Query() queryDto: SearchUsersDto) {
-    return await this.usersService.search(queryDto.query);
+    return await this.usersService.search(queryDto.query, +queryDto.page);
   }
 
   @Get('/:id')

@@ -4,4 +4,7 @@ export class SearchUsersDto {
   @IsString()
   @IsNotEmpty()
   query: string;
+
+  @IsString()
+  page?: string;
 }

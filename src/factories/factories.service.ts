@@ -27,6 +27,7 @@ export class FactoriesService {
   runFactory = async () => {
     this.logger.log('Starting Factory...');
     await this.createUsers();
+    await this.createConversations();
     await this.createMessages();
     await this.createContacts();
     this.logger.log('Factory process completed.');
@@ -80,88 +81,140 @@ export class FactoriesService {
     );
   }
 
+  async createConversations() {
+    this.logger.log('Starting conversation creation process...');
+
+    const users = await this.prisma.user.findMany();
+    const userCount = users.length;
+
+    if (userCount < 2) {
+      this.logger.error('Not enough users to create conversations.');
+      return;
+    }
+
+    const minConversationsPerUser = 20;
+    const maxConversationsPerUser = 30;
+
+    let totalConversationsCreated = 0;
+
+    for (const user of users) {
+      const existingConversationCount = await this.prisma.conversation.count({
+        where: {
+          OR: [{ senderId: user.id }, { receiverId: user.id }],
+        },
+      });
+
+      if (existingConversationCount >= minConversationsPerUser) {
+        continue;
+      }
+
+      const conversationCountToCreate = casual.integer(
+        Math.max(0, minConversationsPerUser - existingConversationCount),
+        maxConversationsPerUser - existingConversationCount,
+      );
+
+      const potentialPartners = users.filter((u) => u.id !== user.id);
+
+      for (let i = 0; i < conversationCountToCreate; i++) {
+        const receiver = casual.random_element(potentialPartners);
+
+        const existingConversation = await this.prisma.conversation.findFirst({
+          where: {
+            OR: [
+              {
+                senderId: user.id,
+                receiverId: receiver.id,
+              },
+              {
+                senderId: receiver.id,
+                receiverId: user.id,
+              },
+            ],
+          },
+        });
+
+        if (!existingConversation) {
+          try {
+            await this.prisma.conversation.create({
+              data: {
+                senderId: user.id,
+                receiverId: receiver.id,
+              },
+            });
+            totalConversationsCreated++;
+          } catch (error) {
+            this.logger.error(
+              `Failed to create conversation between users ${user.id} and ${receiver.id}: ${error.message}`,
+            );
+          }
+        }
+      }
+    }
+
+    this.logger.log(
+      `Conversation creation process completed. Total Conversations Created: ${totalConversationsCreated}.`,
+    );
+  }
+
   async createMessages() {
     this.logger.log('Starting optimized message creation process...');
 
     const totalMessages = this.limit * 100;
-    const batchSize = this.batchSize || 100; // Number of messages per batch
-    const userFetchBatchSize = 1000; // Fetch users in smaller batches if user count is large
-    let totalUsersProcessed = 0;
+    const batchSize = this.batchSize || 1000;
+    const maxParallelBatches = 5;
 
-    const conversations = await this.prisma.conversation.findMany({});
-    if (!conversations.length) {
-      this.logger.error('No conversations found. Cannot create messages.');
+    const users = await this.prisma.user.findMany({ select: { id: true } });
+    const conversations = await this.prisma.conversation.findMany({
+      select: { id: true, senderId: true, receiverId: true },
+    });
+
+    if (!users.length || !conversations.length) {
+      this.logger.error(
+        'Not enough users or conversations found to create messages.',
+      );
       return;
+    }
+
+    const messageData = Array.from({ length: totalMessages }).map(() => {
+      const conversation = casual.random_element(conversations);
+      const senderId = casual.random_element([
+        conversation.senderId,
+        conversation.receiverId,
+      ]);
+
+      return {
+        senderId,
+        content: casual.sentence || 'Default message content',
+        conversationId: conversation.id,
+      };
+    });
+
+    const messageBatches = [];
+    for (let i = 0; i < messageData.length; i += batchSize) {
+      messageBatches.push(messageData.slice(i, i + batchSize));
     }
 
     let messagesCreated = 0;
 
-    // Fetch users in chunks to avoid memory issues
-    while (true) {
-      const users = await this.prisma.user.findMany({
-        skip: totalUsersProcessed,
-        take: userFetchBatchSize,
-      });
+    for (let i = 0; i < messageBatches.length; i += maxParallelBatches) {
+      const parallelBatches = messageBatches.slice(i, i + maxParallelBatches);
 
-      if (!users.length) break;
-
-      totalUsersProcessed += users.length;
-      this.logger.log(
-        `Fetched ${users.length} users. Total processed: ${totalUsersProcessed}`,
+      await Promise.all(
+        parallelBatches.map(async (batch) => {
+          try {
+            await this.prisma.message.createMany({
+              data: batch,
+              skipDuplicates: true,
+            });
+            messagesCreated += batch.length;
+            this.logger.log(
+              `Batch processed. Total Messages Created: ${messagesCreated}`,
+            );
+          } catch (error) {
+            this.logger.error(`Failed to process batch: ${error.message}`);
+          }
+        }),
       );
-
-      const totalUserMessages = Math.ceil(
-        totalMessages / Math.ceil(6000 / users.length),
-      );
-      const userMessageTasks = Array.from({ length: totalUserMessages }, () => {
-        let senderId: number, receiverId: number;
-
-        do {
-          senderId = casual.random_element(users).id;
-          receiverId = casual.random_element(users).id;
-        } while (senderId === receiverId);
-
-        const content = casual.sentence || 'Default message content';
-
-        return {
-          senderId,
-          receiverId,
-          content,
-          conversationId: casual.random_element(conversations).id,
-        };
-      });
-
-      // Process user messages in batches
-      const totalBatches = Math.ceil(userMessageTasks.length / batchSize);
-
-      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-        const batchStart = batchIndex * batchSize;
-        const currentBatch = userMessageTasks.slice(
-          batchStart,
-          batchStart + batchSize,
-        );
-
-        try {
-          await Promise.all(
-            currentBatch.map(({ conversationId, content }) =>
-              this.msgService
-                .create({ conversationId, content })
-                .then(() => {
-                  messagesCreated++;
-                })
-                .catch((error) => {
-                  this.logger.error(
-                    `Failed to create message in batch ${batchIndex + 1}: ${error.message}`,
-                  );
-                }),
-            ),
-          );
-        } catch (error) {
-          this.logger.error(
-            `Error in batch ${batchIndex + 1}: ${error.message}`,
-          );
-        }
-      }
     }
 
     this.logger.log(

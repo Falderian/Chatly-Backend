@@ -54,7 +54,7 @@ export class UsersService {
     return user;
   }
 
-  async search(query: string) {
+  async search(query: string, page = 0) {
     const users = await this.prisma.user.findMany({
       where: {
         OR: [
@@ -82,6 +82,7 @@ export class UsersService {
         lastActivity: true,
       },
       take: 10,
+      skip: page * 10,
     });
 
     return users;

@@ -33,6 +33,7 @@ export class ConversationsService {
           },
         ],
       },
+
       include: {
         messages: {
           take: 10,
@@ -108,52 +109,55 @@ export class ConversationsService {
     });
   }
 
-  async findUserConversations(id: number) {
-    const conversations = await this.prisma.conversation.findMany({
-      where: {
-        OR: [{ senderId: id }, { receiverId: id }],
-      },
-      select: {
-        id: true,
-        messages: {
-          take: 1,
-          orderBy: {
-            createdAt: 'desc',
+  async findUserConversations(id: number, page: number) {
+    try {
+      const conversations = await this.prisma.conversation.findMany({
+        where: {
+          OR: [{ senderId: id }, { receiverId: id }],
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        skip: page * 10,
+        select: {
+          id: true,
+          messages: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
           },
+          sender: { select: { id: true, firstName: true, lastName: true } },
+          receiver: { select: { id: true, firstName: true, lastName: true } },
         },
-        sender: true,
-        receiver: true,
-      },
-    });
+      });
 
-    const conversationsWithMessages = conversations.filter(
-      (conversation) => conversation.messages.length > 0,
-    );
+      return conversations
+        .filter((conversation) => conversation.messages.length > 0)
+        .map((conversation) => {
+          const participant =
+            conversation.sender.id === id
+              ? conversation.receiver
+              : conversation.sender;
 
-    return conversationsWithMessages.map((conversation) => {
-      const participant =
-        conversation.sender.id === id
-          ? conversation.receiver
-          : conversation.sender;
+          const msg = conversation.messages[0];
 
-      const isOwnLastMessage = conversation.messages[0]?.senderId === id;
-      const msg = conversation.messages[0];
-
-      return {
-        id: conversation.id,
-        lastMessage: {
-          content: msg.content,
-          createdAt: msg.createdAt,
-          isRead: msg.isRead,
-        },
-        isOwnLastMessage,
-        participant: {
-          id: participant.id,
-          firstName: participant.firstName,
-          lastName: participant.lastName,
-        },
-      };
-    });
+          return {
+            id: conversation.id,
+            lastMessage: {
+              content: msg?.content || '',
+              createdAt: msg?.createdAt || null,
+              isRead: msg?.isRead || false,
+            },
+            isOwnLastMessage: msg?.senderId === id,
+            participant: {
+              id: participant?.id,
+              firstName: participant?.firstName || '',
+              lastName: participant?.lastName || '',
+            },
+          };
+        });
+    } catch (error) {
+      console.error('Error fetching user conversations:', error);
+      throw new Error('Unable to fetch conversations.');
+    }
   }
 
   async delete(id: number) {

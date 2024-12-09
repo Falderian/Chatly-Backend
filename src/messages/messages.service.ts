@@ -16,20 +16,28 @@ export class MessagesService {
     const conversation =
       await this.conversationsService.findById(conversationId);
 
-    const message = await this.prisma.message.create({
-      data: {
-        conversationId,
-        senderId: conversation.senderId,
-        content,
-      },
-    });
-    this.notificationsService.notificateUser({
-      message: content,
-      senderId: conversation.senderId,
-      receiverId: conversation.receiverId,
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const message = await tx.message.create({
+        data: {
+          conversationId,
+          senderId: conversation.senderId,
+          content,
+        },
+      });
 
-    return message;
+      this.notificationsService.notificateUser({
+        message: content,
+        senderId: conversation.senderId,
+        receiverId: conversation.receiverId,
+      });
+
+      tx.conversation.update({
+        where: { id: conversation.id },
+        data: { updatedAt: message.createdAt },
+      });
+
+      return message;
+    });
   }
 
   async update(id: number, content: string) {

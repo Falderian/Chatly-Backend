@@ -45,6 +45,7 @@ model Conversation {
   receiverId Int
   messages   Message[]
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
 }
 
 model Message {
@@ -54,6 +55,9 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id])
   senderId       Int
   content        String
-  createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([senderId])
+  @@index([conversationId])
 }

@@ -26,13 +26,17 @@ export class ConversationsController {
   }
 
   @Get(':id')
-  async findByid(@Param('id') id: string, @Query('page') page?: number) {
+  async findByid(@Param('id') id: string, @Query('page') page = 0) {
     return await this.conversationsService.findById(+id, page);
   }
 
   @Get('user/:id')
-  async findUserConversations(@Param('id') id: number) {
-    return await this.conversationsService.findUserConversations(+id);
+  async findUserConversations(
+    @Param('id') id: number,
+    @Query('page') page = 0,
+  ) {
+    console.log(id, page);
+    return await this.conversationsService.findUserConversations(+id, page);
   }
 
   @Get('messages/:id')

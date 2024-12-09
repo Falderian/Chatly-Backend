@@ -3,8 +3,8 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { CreateContactDto } from './dto/create-contact.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateContactDto } from './dto/create-contact.dto';
 
 @Injectable()
 export class ContactsService {
@@ -22,7 +22,7 @@ export class ContactsService {
     return { ...res, isContact: true };
   }
 
-  async findUserContacts(userId: string) {
+  async findUserContacts(userId: string, page = 0) {
     const contacts = await this.prisma.contact.findMany({
       where: {
         userId: +userId,
@@ -38,6 +38,7 @@ export class ContactsService {
         },
       },
       take: 10,
+      skip: page + 10,
     });
 
     return contacts.map((contact) => contact.contact);
