@@ -35,7 +35,6 @@ export class ConversationsController {
     @Param('id') id: number,
     @Query('page') page = 0,
   ) {
-    console.log(id, page);
     return await this.conversationsService.findUserConversations(+id, page);
   }
 

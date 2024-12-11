@@ -99,14 +99,16 @@ export class ConversationsService {
   }
 
   async findConversationMessages(id: number, page: number) {
-    return await this.prisma.message.findMany({
+    const msgs = await this.prisma.message.findMany({
       where: { conversationId: id },
-      take: 10,
+      take: 11,
       skip: page * 10,
       orderBy: {
         createdAt: 'desc',
       },
     });
+
+    return { msgs, hasMore: msgs.length === 11 };
   }
 
   async findUserConversations(id: number, page: number) {
