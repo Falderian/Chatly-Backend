@@ -17,11 +17,13 @@ export class AuthService {
 
     const payload = { sub: user.id, email: user.email };
     return {
-      email,
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      access_token: await this.jwtService.signAsync(payload),
+      user: {
+        email,
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+      token: await this.jwtService.signAsync(payload),
     };
   }
 }

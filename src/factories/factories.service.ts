@@ -15,7 +15,7 @@ function getRandomElements<T>(array: T[], count: number): T[] {
 export class FactoriesService {
   skipDuplicates = true;
   limit = 1000;
-  batchSize = 1000;
+  batchSize = 10000;
   logger = new Logger('FactoriesService');
 
   constructor(
@@ -28,8 +28,8 @@ export class FactoriesService {
     this.logger.log('Starting Factory...');
     await this.createUsers();
     await this.createConversations();
-    await this.createMessages();
     await this.createContacts();
+    await this.createMessages();
     this.logger.log('Factory process completed.');
   };
 
@@ -95,64 +95,70 @@ export class FactoriesService {
     const minConversationsPerUser = 20;
     const maxConversationsPerUser = 30;
 
-    let totalConversationsCreated = 0;
+    const allConversations = await this.prisma.conversation.findMany({
+      select: {
+        senderId: true,
+        receiverId: true,
+      },
+    });
+
+    const conversationMap = new Map<string, boolean>();
+    for (const convo of allConversations) {
+      const key = `${convo.senderId}-${convo.receiverId}`;
+      conversationMap.set(key, true);
+    }
+
+    const newConversations: { senderId: number; receiverId: number }[] = [];
 
     for (const user of users) {
-      const existingConversationCount = await this.prisma.conversation.count({
-        where: {
-          OR: [{ senderId: user.id }, { receiverId: user.id }],
-        },
-      });
+      const existingConversationCount = allConversations.filter(
+        (c) => c.senderId === user.id || c.receiverId === user.id,
+      ).length;
 
       if (existingConversationCount >= minConversationsPerUser) {
         continue;
       }
 
-      const conversationCountToCreate = casual.integer(
-        Math.max(0, minConversationsPerUser - existingConversationCount),
-        maxConversationsPerUser - existingConversationCount,
+      const conversationCountToCreate = Math.min(
+        casual.integer(
+          minConversationsPerUser - existingConversationCount,
+          maxConversationsPerUser - existingConversationCount,
+        ),
+        userCount - 1,
       );
 
       const potentialPartners = users.filter((u) => u.id !== user.id);
 
-      for (let i = 0; i < conversationCountToCreate; i++) {
+      let createdCount = 0;
+      while (createdCount < conversationCountToCreate) {
         const receiver = casual.random_element(potentialPartners);
 
-        const existingConversation = await this.prisma.conversation.findFirst({
-          where: {
-            OR: [
-              {
-                senderId: user.id,
-                receiverId: receiver.id,
-              },
-              {
-                senderId: receiver.id,
-                receiverId: user.id,
-              },
-            ],
-          },
-        });
+        const key1 = `${user.id}-${receiver.id}`;
+        const key2 = `${receiver.id}-${user.id}`;
 
-        if (!existingConversation) {
-          try {
-            await this.prisma.conversation.create({
-              data: {
-                senderId: user.id,
-                receiverId: receiver.id,
-              },
-            });
-            totalConversationsCreated++;
-          } catch (error) {
-            this.logger.error(
-              `Failed to create conversation between users ${user.id} and ${receiver.id}: ${error.message}`,
-            );
-          }
+        if (!conversationMap.has(key1) && !conversationMap.has(key2)) {
+          newConversations.push({
+            senderId: user.id,
+            receiverId: receiver.id,
+          });
+          conversationMap.set(key1, true);
+          createdCount++;
         }
       }
     }
 
+    if (newConversations.length > 0) {
+      try {
+        await this.prisma.conversation.createMany({
+          data: newConversations,
+        });
+      } catch (error) {
+        this.logger.error(`Failed to create conversations: ${error.message}`);
+      }
+    }
+
     this.logger.log(
-      `Conversation creation process completed. Total Conversations Created: ${totalConversationsCreated}.`,
+      `Conversation creation process completed. Total Conversations Created: ${newConversations.length}.`,
     );
   }
 
